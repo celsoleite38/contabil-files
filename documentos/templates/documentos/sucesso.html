@@ -1,0 +1,11 @@
+{% extends 'documentos/base.html' %}
+
+{% block content %}
+<div class="text-center mt-5">
+    <div class="alert alert-success">
+        <h4>Operação concluída com sucesso!</h4>
+        <p>Os e-mails de confirmação foram disparados para os envolvidos.</p>
+        <a href="{% url 'lista_pedidos' %}" class="btn btn-primary">Voltar para a Lista</a>
+    </div>
+</div>
+{% endblock %}

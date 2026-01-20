@@ -1,0 +1,46 @@
+{% extends 'documentos/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm mx-auto" style="max-width: 600px;">
+    <div class="card-header bg-dark text-white">
+        <h4 class="mb-0">Cadastrar Novo Usuário</h4>
+    </div>
+    <div class="card-body">
+        <form method="post" id="userForm">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="mb-3" id="div_{{ field.name }}">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-success w-100">Criar Usuário e Enviar Token</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Script simples para alternar campos
+    const tipoField = document.querySelector('select[name="tipo"]');
+    const divEmpresa = document.getElementById('div_empresa');
+    const divSetor = document.getElementById('div_setor');
+
+    function toggleFields() {
+        if (tipoField.value === 'CLIENTE') {
+            divEmpresa.style.display = 'block';
+            divSetor.style.display = 'none';
+        } else {
+            divEmpresa.style.display = 'none';
+            divSetor.style.display = 'block';
+        }
+    }
+
+    tipoField.addEventListener('change', toggleFields);
+    toggleFields(); // Executa ao carregar a página
+</script>
+{% endblock %}

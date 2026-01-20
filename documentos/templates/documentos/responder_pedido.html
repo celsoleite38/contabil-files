@@ -1,0 +1,20 @@
+{% extends 'documentos/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+        <h3>Enviar Documento</h3>
+        <p class="text-muted">{{ pedido.titulo }}</p>
+        <div class="alert alert-info">{{ pedido.descricao_solicitacao }}</div>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Selecione o arquivo:</label>
+                {{ form.arquivo_enviado }}
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Finalizar Envio e Gerar Recibo</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

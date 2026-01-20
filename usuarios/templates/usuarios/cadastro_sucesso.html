@@ -1,0 +1,49 @@
+{% extends 'documentos/base.html' %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 70vh;">
+    <div class="card shadow-lg border-0 text-center p-5" style="max-width: 500px; background-color: var(--bg-card);">
+        <div class="card-body">
+            <div class="mb-4">
+                <div class="bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; border: 2px solid rgba(25, 135, 84, 0.2);">
+                    <i class="bi bi-person-check-fill text-success fs-1"></i>
+                </div>
+            </div>
+
+            <h2 class="fw-bold text-main mb-3">Usuário Criado!</h2>
+            <p class=" mb-4"> <font color="yellow">
+                O cadastro foi realizado com sucesso. Um e-mail de ativação contendo o token de acesso foi enviado para o endereço cadastrado.
+            </p></font>
+
+            <div class="alert alert-info bg-primary bg-opacity-10 border-primary border-opacity-25 text-start mb-4">
+                <div class="d-flex">
+                    <i class="bi bi-info-circle-fill me-2 mt-1 text-primary"></i>
+                    <small class="text-main">
+                        O usuário permanecerá com o status <strong>"Inativo"</strong> até que ele clique no link de confirmação enviado ao e-mail dele.
+                    </small>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'dashboard_admin' %}" class="btn btn-primary rounded-pill py-2 fw-semibold">
+                    <i class="bi bi-speedometer2 me-2"></i>Voltar ao Dashboard
+                </a>
+                <a href="{% url 'cadastrar_usuario' %}" class="btn btn-outline-secondary rounded-pill py-2">
+                    <i class="bi bi-plus-lg me-2"></i>Cadastrar outro usuário
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Pequeno efeito para o card se destacar no fundo dark */
+    .card {
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .text-main { color: #e6edf3; }
+</style>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'documentos/base.html' %}
+
+{% block content %}
+<div class="card shadow-sm mx-auto" style="max-width: 500px;">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">{{ titulo }}</h4>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success w-100 mt-3">Salvar Registro</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
