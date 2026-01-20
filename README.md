@@ -22,10 +22,7 @@ Uma plataforma moderna de troca de documentos entre escritórios de contabilidad
 
 ## 🚀 Como Executar o Projeto
 
-1. **Clone o repositório:**
-   ```bash
-   git clone [https://github.com/SEU_USUARIO/contabil-files.git](https://github.com/SEU_USUARIO/contabil-files.git)
-   cd contabil-files
+
 
 Instale as dependências:
    pip install django
