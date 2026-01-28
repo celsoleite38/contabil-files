@@ -11,4 +11,34 @@
         </form>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Quando a empresa selecionada mudar
+        $("#id_empresa_destino").change(function () {
+            const url = "{% url 'ajax_carregar_usuarios' %}";  
+            const empresaId = $(this).val();
+
+            if (empresaId) {
+                $.ajax({
+                    url: url,
+                    data: {
+                        'empresa_id': empresaId
+                    },
+                    success: function (data) {
+                        let html_data = '<option value="">---------</option>';
+                        data.forEach(function (usuario) {
+                            html_data += `<option value="${usuario.id}">${usuario.username}</option>`;
+                        });
+                        // Preenche o campo de usuário
+                        $("#id_usuario_destinatario").html(html_data);
+                    }
+                });
+            } else {
+                $("#id_usuario_destinatario").html('<option value="">---------</option>');
+            }
+        });
+    });
+</script>
 {% endblock %}

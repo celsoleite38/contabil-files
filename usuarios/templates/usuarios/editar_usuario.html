@@ -11,15 +11,31 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
                         {% for field in form %}
                             <div class="mb-3">
-                                <label class="form-label small fw-bold">{{ field.label }}</label>
+                                <label class="form-label text-white">{{ field.label }}</label>
                                 {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in field.errors %}
+                                            <i class="bi bi-excluir-circle"></i> {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endfor %}
+                        
                         <div class="d-flex gap-2 mt-4">
                             <a href="{% url 'cadastrar_usuario' %}" class="btn btn-outline-secondary rounded-pill">Voltar</a>
-                            <button type="submit" class="btn btn-primary px-4 rounded-pill">Salvar Alterações</button>
+                            <button type="submit" name="btn_salvar_dados" class="btn btn-primary flex-grow-1">Salvar Alterações</button>
                             
                         </div>
                     </form>

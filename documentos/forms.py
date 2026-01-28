@@ -1,6 +1,9 @@
 from django import forms
 from .models import PedidoDocumento, Empresa, Setor, AgendamentoPedido
 from usuarios.models import Usuario
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class CriarPedidoForm(forms.ModelForm):
     # Campo para o contador escolher qual usuário da empresa vai receber o e-mail
@@ -11,7 +14,8 @@ class CriarPedidoForm(forms.ModelForm):
 
     class Meta:
         model = PedidoDocumento
-        fields = ['titulo', 'descricao_solicitacao', 'empresa_destino', 'setor_solicitante']
+        fields = ['titulo', 'descricao_solicitacao', 'empresa_destino', #'setor_solicitante'
+                  'usuario_destinatario']
 
 class ResponderPedidoForm(forms.ModelForm):
     class Meta:
@@ -40,16 +44,31 @@ class SetorForm(forms.ModelForm):
 class AgendamentoPedidoForm(forms.ModelForm):
     class Meta:
         model = AgendamentoPedido
-        fields = ['titulo', 'descricao', 'usuario_destinatario', 'data_agendada', 'repeticao']
+        fields = ['titulo', 'descricao', 'empresa_destino', 'usuario_destinatario', 'data_agendada', 'repeticao']
         widgets = {
             'data_agendada': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Guia de FGTS Mensal'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'empresa_destino': forms.Select(attrs={'class': 'form-select'}),
             'usuario_destinatario': forms.Select(attrs={'class': 'form-select'}),
             'repeticao': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'usuario_destinatario': 'Cliente (Destinatário)',
-            'data_agendada': 'Data da Primeira Solicitação',
+            'usuario_destinatario': 'Cliente (Usuário)',
+            'data_agendada': 'Data da Solicitação',
             'repeticao': 'Frequência de Repetição',
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Inicia a lista de usuários vazia
+        self.fields['usuario_destinatario'].queryset = User.objects.none()
+
+        # Lógica para manter os dados se o formulário falhar ou for editado
+        if 'empresa_destino' in self.data:
+            try:
+                empresa_id = int(self.data.get('empresa_destino'))
+                self.fields['usuario_destinatario'].queryset = User.objects.filter(empresa_id=empresa_id)
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.empresa_destino:
+            self.fields['usuario_destinatario'].queryset = self.instance.empresa_destino.usuarios.all()

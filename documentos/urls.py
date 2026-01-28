@@ -20,5 +20,6 @@ urlpatterns = [
     path('login/sucesso/', redirecionar_pos_login, name='redirecionar_pos_login'),
     path('agendar/', views.agendar_pedido, name='agendar_pedido'),
     path('agendamentos/', views.lista_agendamentos, name='lista_agendamentos'),
+    path('ajax/carregar-usuarios/', views.carregar_usuarios_empresa, name='ajax_carregar_usuarios'),
     
 ]

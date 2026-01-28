@@ -32,19 +32,22 @@ def caminho_resposta_cliente(instance, filename):
     return f'pedidos/{ano}/{mes}/{nome_empresa}/{filename}'
 
 class PedidoDocumento(models.Model):
-    titulo = models.CharField(max_length=150)
-    descricao_solicitacao = models.TextField()
-    usuario_solicitante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='pedidos_feitos')
-    empresa_destino = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='pedidos')
-    setor_solicitante = models.ForeignKey(Setor, on_delete=models.CASCADE)
+    titulo = models.CharField(max_length=150) # Removida a vírgula
+    descricao_solicitacao = models.TextField() # Removida a vírgula
+    usuario_solicitante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='pedidos_criados')
+    # Deixei apenas uma definição de empresa_destino e setor_solicitante
+    empresa_destino = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='pedidos_empresa')
+    setor_solicitante = models.ForeignKey(Setor, on_delete=models.SET_NULL, null=True, blank=True)
     
-    # AJUSTE AQUI: Trocamos a string pelo nome da função
+    # Mudei o related_name abaixo para não conflitar com o Agendamento
+    usuario_destinatario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='pedidos_recebidos')
+    
     arquivo_enviado = models.FileField(upload_to=caminho_resposta_cliente, null=True, blank=True)
-    
     data_solicitacao = models.DateTimeField(auto_now_add=True)
     concluido = models.BooleanField(default=False)
 
     def __str__(self):
+        # Como o título não é mais uma tupla, o str vai funcionar
         return f"{self.titulo} - {self.empresa_destino}"
     
 class AgendamentoPedido(models.Model):
@@ -57,11 +60,13 @@ class AgendamentoPedido(models.Model):
 
     titulo = models.CharField(max_length=150)
     descricao = models.TextField()
-    usuario_solicitante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    usuario_destinatario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='agendamentos_recebidos')
+    usuario_solicitante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='agendamentos_feitos')
+    # Mudei o related_name abaixo para ser exclusivo do agendamento
+    usuario_destinatario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='agendamentos_programados')
     data_agendada = models.DateField()
     repeticao = models.CharField(max_length=10, choices=REPETICAO_CHOICES, default='UMA_VEZ')
     ativo = models.BooleanField(default=True)
+    empresa_destino = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='agendamentos_empresa')
 
     def __str__(self):
         return f"{self.titulo} - {self.get_repeticao_display()}"

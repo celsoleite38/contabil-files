@@ -102,19 +102,20 @@ def excluir_usuario(request, usuario_id):
 def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, id=usuario_id)
     
-    # Formulário de Dados
+    
     form = EditarUsuarioForm(instance=usuario)
-    # Formulário de Senha (vazio para o Modal)
     form_senha = SetPasswordForm(user=usuario)
 
     if request.method == 'POST':
-        # Verifica qual formulário foi enviado
         if 'btn_salvar_dados' in request.POST:
             form = EditarUsuarioForm(request.POST, instance=usuario)
             if form.is_valid():
                 form.save()
-                messages.success(request, "Dados atualizados!")
+                messages.success(request, f"Dados de {usuario.username} atualizados!")
                 return redirect('editar_usuario', usuario_id=usuario.id)
+            else:
+                print(form.errors) 
+                messages.error(request, "Erro ao salvar. Verifique os dados inseridos.")
         
         elif 'btn_mudar_senha' in request.POST:
             form_senha = SetPasswordForm(user=usuario, data=request.POST)

@@ -5,7 +5,8 @@ from .models import AgendamentoPedido, PedidoDocumento, Empresa, Setor
 from django.contrib.auth.decorators import login_required, user_passes_test
 from usuarios.models import Usuario
 from django.db.models import Count, Q
-
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
 
 
 def lista_documentos(request):
@@ -98,28 +99,62 @@ def responder_pedido(request, pedido_id):
 @login_required
 def lista_pedidos(request):
     user = request.user
+    UsuarioModel = get_user_model()
     
+    # Captura de parâmetros
     empresa_id = request.GET.get('empresa')
+    solicitante_id = request.GET.get('solicitante')
+    destinatario_id = request.GET.get('destinatario')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+    sort_by = request.GET.get('sort', '-data_solicitacao')
+    
+    empresas_todas = Empresa.objects.all().order_by('nome_fantasia')
 
+    # --- LÓGICA DE FILTRO DE USUÁRIOS (SOLICITANTES) ---
+    # Se for contabilidade, vê todos os funcionários internos (exceto innosoft)
     if user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']:
-        # Começa com todos os pedidos
         pedidos = PedidoDocumento.objects.all()
-        
-        
         if empresa_id:
             pedidos = pedidos.filter(empresa_destino_id=empresa_id)
+        
+        # Filtra apenas quem é da contabilidade e remove o innosoft
+        usuarios_filtro = UsuarioModel.objects.filter(
+            tipo__in=['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
+        ).exclude(username='innosoft').order_by('username')
+    
+    # Se for cliente, vê apenas os usuários da própria empresa (exceto innosoft)
     else:
-        # Cliente vê apenas os seus
         pedidos = PedidoDocumento.objects.filter(empresa_destino=user.empresa)
+        usuarios_filtro = UsuarioModel.objects.filter(
+            tipo__in=['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
+    ).exclude(username='innosoft').order_by('username')
 
-    pedidos = pedidos.order_by('-data_solicitacao')
+    # --- FILTROS DA TABELA ---
+    if solicitante_id:
+        pedidos = pedidos.filter(usuario_solicitante_id=solicitante_id)
+    if destinatario_id:
+        pedidos = pedidos.filter(usuario_destinatario_id=destinatario_id)
+    if data_inicio:
+        pedidos = pedidos.filter(data_solicitacao__date__gte=data_inicio)
+    if data_fim:
+        pedidos = pedidos.filter(data_solicitacao__date__lte=data_fim)
+
+    # Ordenação
+    campos_validos = ['titulo', 'usuario_solicitante__username', 'usuario_destinatario__username', 'concluido', 'data_solicitacao']
+    if sort_by.lstrip('-') not in campos_validos:
+        sort_by = '-data_solicitacao'
+    
+    pedidos = pedidos.order_by(sort_by)
     
     return render(request, 'documentos/lista_pedidos.html', {
         'pedidos': pedidos,
-        'empresa_filtrada': empresa_id 
+        'empresas_todas': empresas_todas,
+        'usuarios_filtro': usuarios_filtro,
+        'empresa_filtrada': empresa_id,
+        'current_sort': sort_by,
+        'filtros': request.GET 
     })
-
-
 
 # Função para verificar se o usuário é da Contabilidade
 def eh_contador_ou_admin(user):
@@ -137,7 +172,8 @@ def dashboard_admin(request):
     percentual = (concluidos / total_pedidos * 100) if total_pedidos > 0 else 0
     
     relatorio_pendencias = Empresa.objects.annotate(
-        pedidos_pendentes=Count('pedidos', filter=Q(pedidos__concluido=False))
+        total_pedidos=Count('pedidos_empresa'),
+        pedidos_pendentes=Count('pedidos_empresa', filter=Q(pedidos_empresa__concluido=False))
     ).filter(pedidos_pendentes__gt=0).order_by('-pedidos_pendentes')
     
     return render(request, 'documentos/admin_dashboard.html', {
@@ -218,3 +254,12 @@ def agendar_pedido(request):
 def lista_agendamentos(request):
     agendamentos = AgendamentoPedido.objects.filter(ativo=True).order_by('data_agendada')
     return render(request, 'documentos/lista_agendamentos.html', {'agendamentos': agendamentos})
+
+
+
+User = get_user_model()
+def carregar_usuarios_empresa(request):
+    empresa_id = request.GET.get('empresa_id')
+    # Ajuste o filtro abaixo conforme o nome do campo de relação no seu modelo de Usuário
+    usuarios = User.objects.filter(empresa_id=empresa_id).values('id', 'username')
+    return JsonResponse(list(usuarios), safe=False)

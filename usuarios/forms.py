@@ -7,6 +7,7 @@ class CadastroUsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
         fields = ['username', 'email', 'password', 'empresa', 'tipo', 'setor']
+        
 
     def clean(self):
         cleaned_data = super().clean()
@@ -27,4 +28,12 @@ class CadastroUsuarioForm(forms.ModelForm):
 class EditarUsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = ['username', 'email', 'first_name', 'last_name', 'tipo', 'empresa', 'setor']
+        fields = ['username', 'email', 'first_name', 'tipo', 'empresa', 'setor']
+        labels = {
+            'first_name': 'Nome Completo',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'

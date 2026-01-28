@@ -9,7 +9,7 @@
                     <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Agendar Nova Solicitação Recorrente</h5>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post">
+                    <form method="post" id="agendamentoForm">
                         {% csrf_token %}
                         <div class="mb-3">
                             {{ form.as_p }}
@@ -30,4 +30,35 @@
         </div>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Captura o evento de mudança na Empresa
+        $("#id_empresa_destino").change(function () {
+            const url = "{% url 'ajax_carregar_usuarios' %}";  
+            const empresaId = $(this).val(); 
+
+            if (empresaId) {
+                $.ajax({
+                    url: url,
+                    data: { 'empresa_id': empresaId },
+                    success: function (data) {
+                        let html_data = '<option value="">---------</option>';
+                        data.forEach(function (usuario) {
+                            html_data += `<option value="${usuario.id}">${usuario.username}</option>`;
+                        });
+                        // Atualiza o campo de Usuário
+                        $("#id_usuario_destinatario").html(html_data);
+                    },
+                    error: function() {
+                        console.error("Erro ao carregar usuários.");
+                    }
+                });
+            } else {
+                $("#id_usuario_destinatario").html('<option value="">---------</option>');
+            }
+        });
+    });
+</script>
 {% endblock %}
