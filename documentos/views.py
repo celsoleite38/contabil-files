@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CriarPedidoForm, ResponderPedidoForm, EmpresaForm, SetorForm
+from .forms import CriarPedidoForm, ResponderPedidoForm, EmpresaForm, SetorForm, AgendamentoPedidoForm
 from django.core.mail import send_mail
-from .models import PedidoDocumento, Empresa, Setor
+from .models import AgendamentoPedido, PedidoDocumento, Empresa, Setor
 from django.contrib.auth.decorators import login_required, user_passes_test
 from usuarios.models import Usuario
 from django.db.models import Count, Q
-
 
 
 
@@ -55,7 +54,9 @@ def criar_pedido_documento(request):
     if request.method == 'POST':
         form = CriarPedidoForm(request.POST)
         if form.is_valid():
-            pedido = form.save()
+            pedido = form.save(commit=False)
+            pedido.usuario_solicitante = request.user
+            pedido.save()
             usuario_alvo = form.cleaned_data['usuario_destinatario']
             
             # Envia e-mail para o cliente avisando do novo pedido
@@ -162,10 +163,17 @@ def cadastrar_empresa(request):
         form = EmpresaForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('dashboard_admin')
+            return redirect('cadastrar_empresa')
     else:
         form = EmpresaForm()
-    return render(request, 'documentos/form_generico.html', {'form': form, 'titulo': 'Cadastrar Empresa'})
+    
+    listagem = Empresa.objects.all().order_by('nome_fantasia')
+    return render(request, 'documentos/form_generico.html', {
+        'form': form,
+        'titulo': 'Cadastrar Empresa',
+        'listagem': listagem,
+        'tipo': 'EMPRESA'
+    })
 
 @login_required
 @user_passes_test(eh_contador_ou_admin)
@@ -177,4 +185,36 @@ def cadastrar_setor(request):
             return redirect('dashboard_admin')
     else:
         form = SetorForm()
-    return render(request, 'documentos/form_generico.html', {'form': form, 'titulo': 'Cadastrar Setor'})
+
+    listagem = Setor.objects.all().order_by('nome')
+    return render(request, 'documentos/form_generico.html', {
+        'form': SetorForm(),
+        'titulo': 'Gerenciar Setores',
+        'listagem': listagem,
+        'tipo': 'SETOR'
+    })
+    
+
+
+@login_required
+def agendar_pedido(request):
+    # Apenas funcionários da contabilidade podem agendar
+    if request.user.tipo != 'CONTABILIDADE':
+        return redirect('lista_pedidos')
+
+    if request.method == 'POST':
+        form = AgendamentoPedidoForm(request.POST)
+        if form.is_valid():
+            agendamento = form.save(commit=False)
+            agendamento.usuario_solicitante = request.user
+            agendamento.save()
+            return redirect('lista_agendamentos')
+    else:
+        form = AgendamentoPedidoForm()
+    
+    return render(request, 'documentos/agendar_pedido.html', {'form': form})
+
+@login_required
+def lista_agendamentos(request):
+    agendamentos = AgendamentoPedido.objects.filter(ativo=True).order_by('data_agendada')
+    return render(request, 'documentos/lista_agendamentos.html', {'agendamentos': agendamentos})

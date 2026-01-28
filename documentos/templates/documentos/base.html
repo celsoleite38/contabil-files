@@ -130,11 +130,13 @@
     </style>
 </head>
 <body>
-
+{% load static %}
 <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
         <a class="navbar-brand" href="{% url 'lista_pedidos' %}">
-            <i class="bi bi-folder2-stack me-2"></i>FILE CONTÁBIL
+            {# Inserindo a Logo #}
+            <img src="{% static 'img/logo2.png' %}" alt="Logo File Contábil" height="40" class="me-2">
+            <span class="fw-bold">CONTAB FILES</span>
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

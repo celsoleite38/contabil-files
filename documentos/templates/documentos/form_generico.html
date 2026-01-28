@@ -1,16 +1,107 @@
 {% extends 'documentos/base.html' %}
 
 {% block content %}
-<div class="card shadow-sm mx-auto" style="max-width: 500px;">
-    <div class="card-header bg-primary text-white">
-        <h4 class="mb-0">{{ titulo }}</h4>
-    </div>
-    <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-success w-100 mt-3">Salvar Registro</button>
-        </form>
+<div class="container-fluid">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 border-top border-primary border-4">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>{{ titulo }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="modern-form">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label small  fw-bold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary w-100 mt-2 rounded-pill shadow-sm">
+                            <i class="bi bi-check-lg me-1"></i> Salvar Registro
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-transparent py-3">
+                    <h5 class="mb-0 fw-bold text-white">
+                        <i class="bi bi-list-ul me-2 text-warning"></i> lista de Cadastrados
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="text-muted small">
+                                    <th class="ps-4">NOME / IDENTIFICAÇÃO</th>
+                                    {% if tipo == 'EMPRESA' %}
+                                        <th>CNPJ</th>
+                                        <th>LIMITE</th>
+                                    {% endif %}
+                                    <th class="text-end pe-4">AÇÕES</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in listagem %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-semibold text-main">
+                                            {% if tipo == 'EMPRESA' %}{{ item.nome_fantasia }}{% else %}{{ item.nome }}{% endif %}
+                                        </span>
+                                    </td>
+                                    
+                                    {% if tipo == 'EMPRESA' %}
+                                        <td class="small text">{{ item.cnpj }}</td>
+                                        <td><span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ item.limite_usuarios }}</span></td>
+                                    {% endif %}
+
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-secondary border-0 text-info" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary border-0 text-danger" title="Excluir">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class="bi bi-inbox fs-2 d-block mb-2 opacity-25"></i>
+                                        Nenhum registro encontrado.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    /* Estilização rápida para os inputs do Django as_p */
+    .modern-form input, .modern-form select, .modern-form textarea {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        background-color: var(--bg-dark);
+        border: 1px solid var(--border-color);
+        color: #fff;
+        border-radius: 8px;
+    }
+    .text-main { color: #e6edf3; }
+</style>
 {% endblock %}

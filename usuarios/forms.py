@@ -23,3 +23,8 @@ class CadastroUsuarioForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
+    
+class EditarUsuarioForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ['username', 'email', 'first_name', 'last_name', 'tipo', 'empresa', 'setor']
