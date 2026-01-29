@@ -12,6 +12,7 @@ urlpatterns = [
     path('pedidos/', views.lista_pedidos, name='lista_pedidos'),
     path('pedidos/novo/', views.criar_pedido_documento, name='criar_pedido'),
     path('pedidos/responder/<int:pedido_id>/', views.responder_pedido, name='responder_pedido'),
+    path('pedidos/excluir/<int:pedido_id>/', views.excluir_pedido, name='excluir_pedido'),
     path('gestao/', views.dashboard_admin, name='dashboard_admin'),
     path('gestao/empresa/nova/', views.cadastrar_empresa, name='cadastrar_empresa'),
     path('gestao/setor/novo/', views.cadastrar_setor, name='cadastrar_setor'),

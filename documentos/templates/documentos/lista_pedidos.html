@@ -125,10 +125,39 @@
                         {% for pedido in pedidos %}
                         <tr class="border-bottom border-secondary border-opacity-10">
                             <td>{{ pedido.data_solicitacao|date:"d/m/Y H:i" }}</td>
-                            <td class="ps-4">
-                                
-                                <div class="text-white">{{ pedido.titulo }}</div>
-                                <div class="text small">{{ pedidoo }}</div>
+                            <td class="text-white">
+                                <a href="#" class="text-info text-decoration-none" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalDescricao{{ pedido.id }}">
+                                    {{ pedido.titulo }}
+                                </a>
+
+                                <div class="modal fade" id="modalDescricao{{ pedido.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content bg-dark text-white border-secondary">
+                                            <div class="modal-header border-secondary">
+                                                <h5 class="modal-title">{{ pedido.titulo }}</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <h6>Instruções detalhadas:</h6>
+                                                <div class="text-light bg-dark p-3 rounded border border-secondary" style="min-height: 100px;">
+                                                    {% if pedido.descricao_solicitacao %}
+                                                        {{ pedido.descricao_solicitacao|linebreaks }}
+                                                    {% else %}
+                                                        <span class="text-muted italic">Nenhuma instrução detalhada foi fornecida para este pedido.</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-secondary">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                                {% if pedido.status == 'Pendente' %}
+                                                    <a href="{% url 'enviar_arquivo' pedido.id %}" class="btn btn-primary">Enviar Arquivo Agora</a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                             <td>
                                 <span class="text-info">
@@ -151,7 +180,7 @@
                             
                             <td class="text-end pe-4">
                                 {% if user.tipo == 'CONTABILIDADE' %}
-                                    {# VISÃO DA CONTABILIDADE: Baixar o que o cliente mandou #}
+                                    
                                     {% if pedido.arquivo_enviado %}
                                         <a href="{{ pedido.arquivo_enviado.url }}" class="btn btn-sm btn-success rounded-pill px-3" target="_blank">
                                             <i class="bi bi-cloud-arrow-down me-1"></i> Download
@@ -161,6 +190,45 @@
                                             <i class="bi bi-hourglass-split me-1"></i> Aguardando Cliente
                                         </span>
                                     {% endif %}
+                                    <td>
+                                        {% if not pedido.concluido and pedido.status != 'Recebido' %}
+                                            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ pedido.id }}">
+                                                <i class="bi bi-trash"></i> Excluir
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted small" title="Pedidos recebidos não podem ser excluídos">
+                                                <i class="bi bi-lock-fill"></i> Não pode excluir
+                                            </span>
+                                        {% endif %}
+
+                                        {% if not pedido.concluido %}
+                                            <div class="modal fade" id="modalExcluir{{ pedido.id }}" ...>
+                                                </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <div class="modal fade" id="modalExcluir{{ pedido.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content bg-dark text-white">
+                                                <form action="{% url 'excluir_pedido' pedido.id %}" method="POST">
+                                                    {% csrf_token %}
+                                                    <div class="modal-header border-danger">
+                                                        <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Você está excluindo o pedido: <strong>{{ pedido.titulo }}</strong></p>
+                                                        <label>Justificativa da Exclusão (Obrigatório):</label>
+                                                        <textarea name="justificativa" class="form-control bg-secondary text-white" required placeholder="Ex: Pedido duplicado ou erro na competência..."></textarea>
+                                                    </div>
+                                                    <div class="modal-footer border-top-0">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                 {% else %}
                                     {# VISÃO DO CLIENTE: Enviar ou ver o que já enviou #}

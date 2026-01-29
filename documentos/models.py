@@ -32,22 +32,20 @@ def caminho_resposta_cliente(instance, filename):
     return f'pedidos/{ano}/{mes}/{nome_empresa}/{filename}'
 
 class PedidoDocumento(models.Model):
-    titulo = models.CharField(max_length=150) # Removida a vírgula
-    descricao_solicitacao = models.TextField() # Removida a vírgula
+    titulo = models.CharField(max_length=150) 
+    descricao_solicitacao = models.TextField()
     usuario_solicitante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='pedidos_criados')
-    # Deixei apenas uma definição de empresa_destino e setor_solicitante
     empresa_destino = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='pedidos_empresa')
     setor_solicitante = models.ForeignKey(Setor, on_delete=models.SET_NULL, null=True, blank=True)
-    
-    # Mudei o related_name abaixo para não conflitar com o Agendamento
     usuario_destinatario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='pedidos_recebidos')
-    
     arquivo_enviado = models.FileField(upload_to=caminho_resposta_cliente, null=True, blank=True)
     data_solicitacao = models.DateTimeField(auto_now_add=True)
     concluido = models.BooleanField(default=False)
+    excluido = models.BooleanField(default=False)
+    justificativa_exclusao = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        # Como o título não é mais uma tupla, o str vai funcionar
+        
         return f"{self.titulo} - {self.empresa_destino}"
     
 class AgendamentoPedido(models.Model):

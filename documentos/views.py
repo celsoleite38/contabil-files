@@ -9,6 +9,9 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 
+def eh_contador_ou_admin(user):
+    return user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
+
 @login_required
 def lista_documentos(request):
     # Lista apenas os documentos da empresa do usuário logado
@@ -102,7 +105,7 @@ def lista_pedidos(request):
     user = request.user
     UsuarioModel = get_user_model()
     
-    # Captura de parâmetros
+    
     empresa_id = request.GET.get('empresa')
     solicitante_id = request.GET.get('solicitante')
     destinatario_id = request.GET.get('destinatario')
@@ -112,26 +115,25 @@ def lista_pedidos(request):
     
     empresas_todas = Empresa.objects.all().order_by('nome_fantasia')
 
-    # --- LÓGICA DE FILTRO DE USUÁRIOS (SOLICITANTES) ---
-    # Se for contabilidade, vê todos os funcionários internos (exceto innosoft)
+   
     if user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']:
         pedidos = PedidoDocumento.objects.all()
         if empresa_id:
             pedidos = pedidos.filter(empresa_destino_id=empresa_id)
         
-        # Filtra apenas quem é da contabilidade e remove o innosoft
+        
         usuarios_filtro = UsuarioModel.objects.filter(
             tipo__in=['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
         ).exclude(username='innosoft').order_by('username')
     
-    # Se for cliente, vê apenas os usuários da própria empresa (exceto innosoft)
+    
     else:
         pedidos = PedidoDocumento.objects.filter(empresa_destino=user.empresa)
         usuarios_filtro = UsuarioModel.objects.filter(
             tipo__in=['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
     ).exclude(username='innosoft').order_by('username')
 
-    # --- FILTROS DA TABELA ---
+    
     if solicitante_id:
         pedidos = pedidos.filter(usuario_solicitante_id=solicitante_id)
     if destinatario_id:
@@ -157,9 +159,26 @@ def lista_pedidos(request):
         'filtros': request.GET 
     })
 
-# Função para verificar se o usuário é da Contabilidade
-def eh_contador_ou_admin(user):
-    return user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
+@login_required
+@user_passes_test(eh_contador_ou_admin)
+def excluir_pedido(request, pedido_id):
+    if request.method == 'POST':
+        pedido = get_object_or_404(PedidoDocumento, id=pedido_id)
+        
+        if pedido.arquivo_enviado or pedido.concluido:
+            messages.error(request, "Este pedido já foi atendido pelo cliente e não pode ser excluído.")
+            return redirect('lista_pedidos')
+
+        justificativa = request.POST.get('justificativa')
+
+        if not justificativa or len(justificativa) < 5:
+            messages.error(request, "Justificativa muito curta ou vazia!")
+            return redirect('lista_pedidos')
+
+        pedido.delete() 
+        messages.success(request, "Pedido removido com sucesso.")
+        
+    return redirect('lista_pedidos')
 
 @login_required
 @user_passes_test(eh_contador_ou_admin)
@@ -181,6 +200,8 @@ def dashboard_admin(request):
         'total_empresas': total_empresas,
         'total_setores': total_setores,
         'total_usuarios': total_usuarios,
+        'total_pedidos': total_pedidos,
+        'percentual': percentual,
         'relatorio_pendencias': relatorio_pendencias,
     })
 
