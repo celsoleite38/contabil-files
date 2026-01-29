@@ -12,7 +12,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/usuarios/login/'), name='index'),
     
     # Apps
-    path('usuarios/', include('usuarios.urls')),  # Mude de 'lista_pedidos' para 'usuarios'
+    path('usuarios/', include('usuarios.urls')),  
     path('', include('documentos.urls')),
 ]
 

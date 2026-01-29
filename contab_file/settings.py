@@ -1,4 +1,3 @@
-
 import os
 from pathlib import Path
 
@@ -15,7 +14,7 @@ SECRET_KEY = 'django-insecure-azu)&ql+dp)1fena$0fybt&+cfjsb-it4ja+pgqjiv=!&f*2ei
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['contabfiles.innosoft.com.br','www.contabfiles.innosoft.com.br', '191.252.201.138', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -106,7 +105,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = '/var/www/innosoft/contabfiles/static_files/'
+
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
@@ -121,8 +122,33 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/var/www/innosoft/contabfiles/media/'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'redirecionar_pos_login'
 LOGOUT_REDIRECT_URL = 'login'
+
+
+# CSRF para HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'https://contabfiles.innosoft.com.br',
+    'https://www.contabfiles.innosoft.com.br',
+    'https://191.252.201.138',
+]
+
+# Cookies seguros para HTTPS
+CSRF_COOKIE_SECURE = True      # IMPORTANTE: True para HTTPS
+SESSION_COOKIE_SECURE = True   # IMPORTANTE: True para HTTPS
+
+# Configurações de proxy/reverse proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+
+# Outras configurações de segurança
+SECURE_SSL_REDIRECT = False  # O Nginx já faz o redirect, deixe False
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True

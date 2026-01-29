@@ -7,8 +7,9 @@ from usuarios.models import Usuario
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 
-
+@login_required
 def lista_documentos(request):
     # Lista apenas os documentos da empresa do usuário logado
     docs = Documento.objects.filter(empresa__usuarios=request.user)
@@ -263,3 +264,58 @@ def carregar_usuarios_empresa(request):
     # Ajuste o filtro abaixo conforme o nome do campo de relação no seu modelo de Usuário
     usuarios = User.objects.filter(empresa_id=empresa_id).values('id', 'username')
     return JsonResponse(list(usuarios), safe=False)
+
+
+@login_required
+def editar_empresa(request, empresa_id):
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    
+    if request.method == 'POST':
+        form = EmpresaForm(request.POST, instance=empresa)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Empresa {empresa.nome_fantasia} atualizada!")
+            return redirect('cadastrar_empresa') # Ou a view onde fica a lista
+    else:
+        form = EmpresaForm(instance=empresa)
+    
+    return render(request, 'documentos/editar_empresa.html', {
+        'form': form,
+        'empresa': empresa
+    })
+
+@login_required
+def excluir_empresa(request, empresa_id):
+    empresa = get_object_or_404(Empresa, id=empresa_id)
+    # Opcional: verificar se há usuários vinculados antes de excluir
+    nome = empresa.nome_fantasia
+    empresa.delete()
+    messages.success(request, f"Empresa {nome} removida com sucesso.")
+    return redirect('cadastrar_empresa')
+
+
+
+def editar_setor(request, setor_id):
+    setor = get_object_or_404(Setor, id=setor_id)
+    
+    if request.method == 'POST':
+        form = SetorForm(request.POST, instance=setor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Setor {setor.nome} atualizado com sucesso!")
+            return redirect('cadastrar_setor')  # Redireciona de volta para a lista
+    else:
+        form = SetorForm(instance=setor)
+    
+    return render(request, 'documentos/editar_setor.html', {
+        'form': form,
+        'setor': setor,
+        'titulo': 'Editar Setor'
+    })
+
+def excluir_setor(request, setor_id):
+    setor = get_object_or_404(Setor, id=setor_id)
+    nome_setor = setor.nome
+    setor.delete()
+    messages.success(request, f"Setor {nome_setor} excluído com sucesso!")
+    return redirect('cadastrar_setor')

@@ -1,3 +1,4 @@
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from documentos.models import AgendamentoPedido, PedidoDocumento, Empresa
@@ -22,7 +23,7 @@ class Command(BaseCommand):
                 usuario_solicitante=agend.usuario_solicitante,
                 usuario_destinatario=agend.usuario_destinatario,
                 # CORREÇÃO AQUI: usamos 'agend' (minúsculo), que é a instância atual
-                empresa_destino=agend.empresa_destino, 
+                empresa_destino=agend.empresa_destino,
                 data_solicitacao=timezone.now()
             )
 
@@ -35,9 +36,9 @@ class Command(BaseCommand):
                 # Somar 30 dias ou usar relativedelta para precisão de meses
                 agend.data_agendada += timedelta(days=30)
             else:
-                agend.ativo = False 
-            
+                agend.ativo = False
+
             agend.save()
-            
+
             # CORREÇÃO NO LOG: usar agend.empresa para mostrar o nome correto no terminal
             self.stdout.write(self.style.SUCCESS(f'Pedido criado para a empresa: {agend.empresa_destino.nome_fantasia}'))

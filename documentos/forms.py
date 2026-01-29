@@ -32,6 +32,10 @@ class EmpresaForm(forms.ModelForm):
             'cnpj': forms.TextInput(attrs={'class': 'form-control'}),
             'limite_usuarios': forms.NumberInput(attrs={'class': 'form-control'}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control bg-dark text-white border-secondary'
 
 class SetorForm(forms.ModelForm):
     class Meta:
@@ -40,6 +44,10 @@ class SetorForm(forms.ModelForm):
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control'}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control bg-dark text-white border-secondary'
 
 class AgendamentoPedidoForm(forms.ModelForm):
     class Meta:

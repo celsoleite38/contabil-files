@@ -1,0 +1,66 @@
+{% extends 'documentos/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark text-white border-secondary shadow">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square text-primary"></i> Editar Empresa: {{ empresa.nome_fantasia }}</h4>
+                    <a href="{% url 'cadastrar_empresa' %}" class="btn btn-outline-light btn-sm">Voltar</a>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in field.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold">
+                                <i class="bi bi-save"></i> Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-danger bg-dark mt-5 shadow">
+                <div class="card-header border-danger bg-danger text-white fw-bold">
+                    <i class="bi bi-exclamation-triangle"></i> ZONA CRÍTICA
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-danger mb-1">Excluir esta empresa</h6>
+                            <p class="text-white small mb-0">Esta ação é irreversível e removerá todos os vínculos desta empresa.</p>
+                        </div>
+                        <button type="button" class="btn btn-outline-danger" onclick="confirmarExclusaoEmpresa()">
+                            <i class="bi bi-trash"></i> Excluir Empresa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmarExclusaoEmpresa() {
+    // Substitua 'excluir_empresa' pelo name correto que está no seu urls.py
+    const confirmacao = confirm("ATENÇÃO: Você tem certeza que deseja excluir permanentemente a empresa '{{ empresa.nome_fantasia }}'?");
+    if (confirmacao) {
+        window.location.href = "{% url 'excluir_empresa' empresa.id %}";
+    }
+}
+</script>
+{% endblock %}

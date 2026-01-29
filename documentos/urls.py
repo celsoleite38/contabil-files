@@ -21,5 +21,9 @@ urlpatterns = [
     path('agendar/', views.agendar_pedido, name='agendar_pedido'),
     path('agendamentos/', views.lista_agendamentos, name='lista_agendamentos'),
     path('ajax/carregar-usuarios/', views.carregar_usuarios_empresa, name='ajax_carregar_usuarios'),
+    path('empresa/editar/<int:empresa_id>/', views.editar_empresa, name='editar_empresa'),
+    path('empresa/excluir/<int:empresa_id>/', views.excluir_empresa, name='excluir_empresa'),
+    path('setor/editar/<int:setor_id>/', views.editar_setor, name='editar_setor'),
+    path('setor/excluir/<int:setor_id>/', views.excluir_setor, name='excluir_setor'),
     
 ]

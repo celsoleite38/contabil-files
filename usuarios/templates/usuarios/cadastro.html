@@ -7,6 +7,21 @@
             <div class="card shadow-sm border-0 border-top border-primary border-4 bg-card">
                 <div class="card-header bg-transparent py-3 text-white">
                     <h5 class="mb-0 fw-bold"><i class="bi bi-person-plus me-2"></i>Novo Usuário</h5>
+                    {% if form.errors %}
+                        <div class="alert alert-danger bg-dark text-danger border-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                            <strong>Erro no cadastro:</strong> <br>Verifique os campos abaixo.
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                            
+                            {% if form.non_field_errors %}
+                                <ul class="mb-0 mt-2">
+                                    {% for error in form.non_field_errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <form method="post" id="userForm">
@@ -54,6 +69,7 @@
         <h6 class="mb-0 fw-bold text-warning">
             <i class="bi bi-people me-2"></i>Usuários do Sistema (Contabilidade e Clientes)
         </h6>
+        
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">

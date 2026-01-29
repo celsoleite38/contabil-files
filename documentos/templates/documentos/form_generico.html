@@ -64,12 +64,15 @@
 
                                     <td class="text-end pe-4">
                                         <div class="btn-group">
-                                            <button class="btn btn-sm btn-outline-secondary border-0 text-info" title="Editar">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-secondary border-0 text-danger" title="Excluir">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            {% if tipo == 'EMPRESA' %}
+                                                <a href="{% url 'editar_empresa' item.id %}" class="btn btn-sm btn-outline-secondary border-0 text-info" title="Editar Empresa">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'editar_setor' item.id %}" class="btn btn-sm btn-outline-secondary border-0 text-info" title="Editar Setor">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
