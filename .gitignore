@@ -1,7 +1,7 @@
 # Ambiente virtual (não versionar)
 venv/
 env/
-
+media
 # Arquivos do Python
 __pycache__/
 *.pyc
