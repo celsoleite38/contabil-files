@@ -7,6 +7,9 @@ from usuarios.views import cadastrar_usuario, ativar_conta, redirecionar_pos_log
 urlpatterns = [
     # 1. Raiz do site redireciona para login
     path('', RedirectView.as_view(url='/login/'), name='index'),
+    
+    #manual do usuario
+    path('manual/', views.manual_usuario, name='manual_usuario'),
 
       # 2. Gestão e Pedidos
     path('pedidos/', views.lista_pedidos, name='lista_pedidos'),

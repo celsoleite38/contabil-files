@@ -127,6 +127,7 @@
             background: var(--border-color);
             border-radius: 10px;
         }
+       
     </style>
 </head>
 <body>
@@ -166,6 +167,12 @@
                     </ul>
                 </li>
                 {% endif %}
+                <li class="nav-item">
+                    <a href="{% url 'manual_usuario' %}" class="btn btn-link text-info text-decoration-none">
+                        <i class="bi bi-info-circle me-1"></i> <strong>Manual do Sistema</strong>
+                    </a>
+                </li>
+                
             </ul>
 
             <div class="d-flex align-items-center">

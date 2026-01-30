@@ -9,6 +9,9 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 
+def manual_usuario(request):
+    return render(request, 'documentos/manual.html')
+
 def eh_contador_ou_admin(user):
     return user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
 
