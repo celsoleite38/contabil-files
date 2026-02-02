@@ -1,0 +1,44 @@
+{% load static %}
+<div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; color: #333;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ logo_url }}" alt="{{ nome_contabilidade }}" style="max-width: 150px;">
+    </div>
+    
+    <div style="text-align: center; color: #27ae60;">
+        <span style="font-size: 50px;">📂📑</span>
+        
+    </div>
+
+    <h2 style="color: #2c3e50; text-align: center;">Nova Solicitação de Documento</h2>
+    
+    <p>Olá, <strong>{{ pedido.usuario_destinatario.get_full_name|default:pedido.usuario_destinatario.username }}</strong> ({{ pedido.empresa_destino.nome_fantasia }}),</p>
+    
+    <p>A contabilidade registrou uma nova solicitação para você:</p>
+    
+    <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #3498db; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #3498db;">{{ pedido.titulo }}</h3>
+        <p style="white-space: pre-line; margin-bottom: 15px;">{{ pedido.descricao_solicitacao }}</p>
+        
+        <hr style="border: 0; border-top: 1px dashed #ccc;">
+        
+        <p style="font-size: 13px; margin-bottom: 5px;">
+            <strong>Data do Pedido:</strong> {{ pedido.data_solicitacao|date:"d/m/Y H:i" }}
+        </p>
+        <p style="font-size: 13px; margin-top: 0;">
+            <strong>Solicitado por:</strong> {{ pedido.usuario_solicitante.get_full_name|default:pedido.usuario_solicitante.username }}
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="http://contabfiles.innosoft.com.br/pedidos/" 
+           style="background-color: #3498db; color: white; padding: 14px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            Acessar ContabFiles para Enviar
+        </a>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin-top: 40px;">
+    <p style="font-size: 11px; color: #999; text-align: center; line-height: 1.4;">
+        Este é um e-mail automático enviado pelo sistema <strong>ContabFiles</strong>.<br>
+        Por favor, não responda a este e-mail.
+    </p>
+</div>

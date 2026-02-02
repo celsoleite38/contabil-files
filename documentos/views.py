@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import CriarPedidoForm, ResponderPedidoForm, EmpresaForm, SetorForm, AgendamentoPedidoForm
-from django.core.mail import send_mail
-from .models import AgendamentoPedido, PedidoDocumento, Empresa, Setor
+from .forms import ConfiguracaoSistemaForm, CriarPedidoForm, ResponderPedidoForm, EmpresaForm, SetorForm, AgendamentoPedidoForm
+from django.core.mail import send_mail, EmailMultiAlternatives
+from .models import AgendamentoPedido, ConfiguracaoSistema, PedidoDocumento, Empresa, Setor
 from django.contrib.auth.decorators import login_required, user_passes_test
 from usuarios.models import Usuario
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 def manual_usuario(request):
     return render(request, 'documentos/manual.html')
@@ -35,28 +37,74 @@ def upload_arquivo(request):
     return render(request, 'documentos/upload.html', {'form': form})
 
 
+def enviar_notificacao_documento(pedido, tipo_evento):
+    config = ConfiguracaoSistema.objects.first()
+    
+    
+    logo_url = "https://vectorseek.com/wp-content/uploads/2023/08/Contabilidade-Logo-Vector.svg-.png"
+    if config and config.logo_contabilidade:
+        dominio = "https://contabfiles.innosoft.com.br"
+        logo_url = f"{dominio}{config.logo_contabilidade.url}"
+    
+    context = {
+        'pedido': pedido,
+        'logo_url': logo_url,
+        'nome_contabilidade': config.nome_contabilidade if config else "Contabilidade",
+        'link_sistema': 'https://contabfiles.innosoft.com.br/pedidos/'
+    }
+    
+    if tipo_evento == 'SOLICITACAO':
+        assunto = f"Solicitação: {pedido.titulo}"
+        template = 'documentos/email_solicitacao.html'
+        
+        to_list = [pedido.usuario_destinatario.email]
+        
+        cc_list = []#pedido.usuario_solicitante.email
+    else:
+        assunto = f"Recibo de Envio: {pedido.titulo}"
+        template = 'documentos/email_recibo.html'
+        
+        to_list = [pedido.usuario_destinatario.email, pedido.usuario_solicitante.email]
+        cc_list = []
+        
+    nome_exibicao = config.nome_contabilidade if config and config.nome_contabilidade else "ContabFiles"
+
+    html_content = render_to_string(template, context)
+    text_content = strip_tags(html_content)
+    from_email = f'{nome_exibicao} <suporteinnosoft@gmail.com>'
+    
+    
+    email = EmailMultiAlternatives(assunto, text_content, from_email, to_list, cc=cc_list)
+    email.attach_alternative(html_content, "text/html")
+    
+    try:
+        email.send()
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
+
+@login_required
 def responder_pedido(request, pedido_id):
     pedido = get_object_or_404(PedidoDocumento, id=pedido_id)
     
+    if request.user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']:
+        messages.warning(request, "A contabilidade não envia arquivos de resposta.")
+        return redirect('lista_pedidos')
+
     if request.method == 'POST':
-        arquivo = request.FILES.get('arquivo_enviado')
-        if arquivo:
-            pedido.arquivo_enviado = arquivo
+        form = ResponderPedidoForm(request.POST, request.FILES, instance=pedido)
+        if form.is_valid():
+            pedido = form.save(commit=False)
             pedido.concluido = True
             pedido.save()
 
-            # Envio de Recibo (Para Cliente e Contador)
-            assunto = f"Recibo: {pedido.titulo} enviado com sucesso"
-            mensagem = f"O documento {pedido.titulo} foi recebido pelo sistema."
             
-            # Lista de e-mails: do cliente logado e de quem solicitou (se houver)
-            destinatarios = [request.user.email] 
-            
-            send_mail(assunto, mensagem, 'sistema@contabilidade.com', destinatarios)
+            enviar_notificacao_documento(pedido, 'RECIBO')
             
             return render(request, 'documentos/sucesso.html')
-            
-    return render(request, 'documentos/responder_pedido.html', {'pedido': pedido})
+    else:
+        form = ResponderPedidoForm(instance=pedido)
+    return render(request, 'documentos/responder_pedido.html', {'pedido': pedido, 'form': form})
+
 
 def criar_pedido_documento(request):
     if request.method == 'POST':
@@ -66,48 +114,19 @@ def criar_pedido_documento(request):
             pedido.usuario_solicitante = request.user
             pedido.save()
             usuario_alvo = form.cleaned_data['usuario_destinatario']
+           
+            enviar_notificacao_documento(pedido, 'SOLICITACAO')
             
-            # Envia e-mail para o cliente avisando do novo pedido
-            send_mail(
-                f"Solicitação: {pedido.titulo}",
-                f"Olá {usuario_alvo.username}, a contabilidade solicita: {pedido.descricao_solicitacao}",
-                'sistema@contabilidade.com',
-                [usuario_alvo.email],
-            )
+            messages.success(request, "Pedido criado e e-mail enviado ao cliente.")
             return redirect('lista_pedidos')
     else:
         form = CriarPedidoForm()
     return render(request, 'documentos/criar_pedido.html', {'form': form})
 
-# View para o Cliente Enviar o arquivo (Responder)
-def responder_pedido(request, pedido_id):
-    pedido = get_object_or_404(PedidoDocumento, id=pedido_id)
-    
-    if request.method == 'POST':
-        form = ResponderPedidoForm(request.POST, request.FILES, instance=pedido)
-        if form.is_valid():
-            pedido = form.save(commit=False)
-            pedido.concluido = True
-            pedido.save()
-
-            # Envia recibo para o Cliente e Notificação para a Contabilidade
-            destinatarios = [request.user.email] # Adicione o e-mail do contador se desejar
-            send_mail(
-                "Recibo de Envio",
-                f"O documento {pedido.titulo} foi entregue com sucesso.",
-                'sistema@contabilidade.com',
-                destinatarios,
-            )
-            return render(request, 'documentos/sucesso.html')
-    else:
-        form = ResponderPedidoForm(instance=pedido)
-    return render(request, 'documentos/responder_pedido.html', {'pedido': pedido, 'form': form})
-
 @login_required
 def lista_pedidos(request):
     user = request.user
     UsuarioModel = get_user_model()
-    
     
     empresa_id = request.GET.get('empresa')
     solicitante_id = request.GET.get('solicitante')
@@ -117,7 +136,6 @@ def lista_pedidos(request):
     sort_by = request.GET.get('sort', '-data_solicitacao')
     
     empresas_todas = Empresa.objects.all().order_by('nome_fantasia')
-
    
     if user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']:
         pedidos = PedidoDocumento.objects.all()
@@ -186,12 +204,13 @@ def excluir_pedido(request, pedido_id):
 @login_required
 @user_passes_test(eh_contador_ou_admin)
 def dashboard_admin(request):
+    config = ConfiguracaoSistema.objects.first()
     total_empresas = Empresa.objects.count()
     total_setores = Setor.objects.count()
     total_usuarios = Usuario.objects.count()
     total_pedidos = PedidoDocumento.objects.count()
     concluidos = PedidoDocumento.objects.filter(concluido=True).count()
-    # Cálculo simples de porcentagem para o gráfico CSS
+    # Cálculo simples de porcentagem
     percentual = (concluidos / total_pedidos * 100) if total_pedidos > 0 else 0
     
     relatorio_pendencias = Empresa.objects.annotate(
@@ -200,6 +219,7 @@ def dashboard_admin(request):
     ).filter(pedidos_pendentes__gt=0).order_by('-pedidos_pendentes')
     
     return render(request, 'documentos/admin_dashboard.html', {
+        'config': config,
         'total_empresas': total_empresas,
         'total_setores': total_setores,
         'total_usuarios': total_usuarios,
@@ -208,7 +228,6 @@ def dashboard_admin(request):
         'relatorio_pendencias': relatorio_pendencias,
     })
 
-# Exemplo de listagem para o contador gerir
 @login_required
 @user_passes_test(eh_contador_ou_admin)
 def gerir_empresas(request):
@@ -254,8 +273,6 @@ def cadastrar_setor(request):
         'listagem': listagem,
         'tipo': 'SETOR'
     })
-    
-
 
 @login_required
 def agendar_pedido(request):
@@ -280,15 +297,12 @@ def lista_agendamentos(request):
     agendamentos = AgendamentoPedido.objects.filter(ativo=True).order_by('data_agendada')
     return render(request, 'documentos/lista_agendamentos.html', {'agendamentos': agendamentos})
 
-
-
 User = get_user_model()
 def carregar_usuarios_empresa(request):
     empresa_id = request.GET.get('empresa_id')
     # Ajuste o filtro abaixo conforme o nome do campo de relação no seu modelo de Usuário
     usuarios = User.objects.filter(empresa_id=empresa_id).values('id', 'username')
     return JsonResponse(list(usuarios), safe=False)
-
 
 @login_required
 def editar_empresa(request, empresa_id):
@@ -343,3 +357,23 @@ def excluir_setor(request, setor_id):
     setor.delete()
     messages.success(request, f"Setor {nome_setor} excluído com sucesso!")
     return redirect('cadastrar_setor')
+
+@login_required
+@user_passes_test(lambda u: u.tipo == 'ADMIN_CONTABILIDADE')
+def configurar_painel(request):
+    # Pega a primeira configuração ou cria uma se não existir
+    config, created = ConfiguracaoSistema.objects.get_or_create(id=1)
+
+    if request.method == 'POST':
+        form = ConfiguracaoSistemaForm(request.POST, request.FILES, instance=config)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Configurações atualizadas com sucesso!")
+            return redirect('configurar_painel')
+    else:
+        form = ConfiguracaoSistemaForm(instance=config)
+
+    return render(request, 'documentos/configuracoes.html', {
+        'form': form,
+        'config': config
+    })

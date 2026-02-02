@@ -20,8 +20,6 @@ class Empresa(models.Model):
     def __str__(self):
         return self.nome_fantasia
 
-
-
 def caminho_resposta_cliente(instance, filename):
     # 1. Pegamos a data atual para formatar as pastas
     agora = timezone.now()
@@ -68,3 +66,21 @@ class AgendamentoPedido(models.Model):
 
     def __str__(self):
         return f"{self.titulo} - {self.get_repeticao_display()}"
+    
+class ConfiguracaoSistema(models.Model):
+    nome_contabilidade = models.CharField(max_length=200, default="Minha Contabilidade")
+    logo_contabilidade = models.ImageField(upload_to='logos_sistema/', null=True, blank=True)
+    email_contato = models.EmailField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Configuração do Sistema"
+        verbose_name_plural = "Configurações do Sistema"
+
+    def __str__(self):
+        return "Configurações Globais"
+
+    # Método para garantir que só exista UMA configuração no banco
+    def save(self, *args, **kwargs):
+        if not self.pk and ConfiguracaoSistema.objects.exists():
+            return # Impede criar mais de um registro
+        return super().save(*args, **kwargs)

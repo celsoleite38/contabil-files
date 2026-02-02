@@ -1,0 +1,32 @@
+{% extends "documentos/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-gear-fill me-2"></i>Configurações do Sistema</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nome da Contabilidade (Exibido no e-mail)</label>
+                        {{ form.nome_contabilidade }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Logo da Contabilidade</label>
+                        {{ form.logo_contabilidade }}
+                        {% if config.logo_contabilidade %}
+                            <div class="mt-2">
+                                <p class="small text-muted">Logo Atual:</p>
+                                <img src="{{ config.logo_contabilidade.url }}" style="max-height: 80px;" class="img-thumbnail">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success px-4">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

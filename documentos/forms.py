@@ -1,5 +1,5 @@
 from django import forms
-from .models import PedidoDocumento, Empresa, Setor, AgendamentoPedido
+from .models import PedidoDocumento, Empresa, Setor, AgendamentoPedido, ConfiguracaoSistema
 from usuarios.models import Usuario
 from django.contrib.auth import get_user_model
 
@@ -80,3 +80,15 @@ class AgendamentoPedidoForm(forms.ModelForm):
                 pass
         elif self.instance.pk and self.instance.empresa_destino:
             self.fields['usuario_destinatario'].queryset = self.instance.empresa_destino.usuarios.all()
+            
+
+
+class ConfiguracaoSistemaForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguracaoSistema
+        fields = ['nome_contabilidade', 'logo_contabilidade', 'email_contato']
+        widgets = {
+            'nome_contabilidade': forms.TextInput(attrs={'class': 'form-control'}),
+            'email_contato': forms.EmailInput(attrs={'class': 'form-control'}),
+            'logo_contabilidade': forms.FileInput(attrs={'class': 'form-control'}),
+        }

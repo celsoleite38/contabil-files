@@ -1,0 +1,32 @@
+{% load static %}
+<div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; color: #333;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="{{ logo_url }}" alt="{{ nome_contabilidade }}" style="max-width: 150px;">
+    </div>
+    
+    <div style="text-align: center; color: #27ae60;">
+        <span style="font-size: 50px;">✅</span>
+        <h2 style="margin-top: 10px;">Documento Recebido!</h2>
+    </div>
+    
+    <p>Olá,</p>
+    <p>Confirmamos que o documento <strong>{{ pedido.titulo }}</strong> foi enviado com sucesso pela empresa <strong>{{ pedido.empresa_destino.nome_fantasia}}</strong>.</p>
+    
+    <div style="background-color: #f1f9f4; padding: 15px; border-left: 4px solid #27ae60; margin: 20px 0;">
+        <p style="margin: 0; font-size: 14px;"><strong>Protocolo de Envio:</strong> #{{ pedido.id }}</p>
+        <p style="margin: 5px 0; font-size: 14px;"><strong>Data/Hora:</strong> {% now "d/m/Y H:i" %}</p>
+        <p style="margin: 5px 0; font-size: 14px;"><strong>Enviado por:</strong> {{ pedido.usuario_destinatario.get_full_name|default:pedido.usuario_destinatario.username }}</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="http://contabfiles.innosoft.com.br/pedidos/" 
+           style="background-color: #27ae60; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            Visualizar no Painel
+        </a>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin-top: 40px;">
+    <p style="font-size: 11px; color: #999; text-align: center;">
+        Este é um recibo eletrônico gerado pelo sistema <strong>ContabFiles</strong>.
+    </p>
+</div>

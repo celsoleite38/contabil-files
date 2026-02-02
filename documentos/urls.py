@@ -29,5 +29,5 @@ urlpatterns = [
     path('empresa/excluir/<int:empresa_id>/', views.excluir_empresa, name='excluir_empresa'),
     path('setor/editar/<int:setor_id>/', views.editar_setor, name='editar_setor'),
     path('setor/excluir/<int:setor_id>/', views.excluir_setor, name='excluir_setor'),
-    
+    path('configuracoes/', views.configurar_painel, name='configurar_painel'),
 ]

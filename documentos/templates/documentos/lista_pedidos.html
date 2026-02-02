@@ -179,51 +179,48 @@
                             </td>
                             
                             <td class="text-end pe-4">
-                                {% if user.tipo == 'CONTABILIDADE' %}
-                                    
-                                    {% if pedido.arquivo_enviado %}
-                                        <a href="{{ pedido.arquivo_enviado.url }}" class="btn btn-sm btn-success rounded-pill px-3" target="_blank">
-                                            <i class="bi bi-cloud-arrow-down me-1"></i> Download
-                                        </a>
-                                    {% else %}
-                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill">
-                                            <i class="bi bi-hourglass-split me-1"></i> Aguardando Cliente
-                                        </span>
-                                    {% endif %}
-                                    <td>
-                                        {% if not pedido.concluido and pedido.status != 'Recebido' %}
-                                            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ pedido.id }}">
-                                                <i class="bi bi-trash"></i> Excluir
-                                            </button>
+                                {% if user.tipo == 'CONTABILIDADE' or user.tipo == 'ADMIN_CONTABILIDADE' %}
+                                    {# VISÃO DA CONTABILIDADE #}
+                                    <div class="d-flex justify-content-end gap-2">
+                                        {% if pedido.arquivo_enviado %}
+                                            <a href="{{ pedido.arquivo_enviado.url }}" class="btn btn-sm btn-success rounded-pill px-3" target="_blank">
+                                                <i class="bi bi-cloud-arrow-down me-1"></i> Download
+                                            </a>
                                         {% else %}
-                                            <span class="text-muted small" title="Pedidos recebidos não podem ser excluídos">
-                                                <i class="bi bi-lock-fill"></i> Não pode excluir
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill d-flex align-items-center">
+                                                <i class="bi bi-hourglass-split me-1"></i> Aguardando Cliente
                                             </span>
                                         {% endif %}
 
                                         {% if not pedido.concluido %}
-                                            <div class="modal fade" id="modalExcluir{{ pedido.id }}" ...>
-                                                </div>
+                                            <button class="btn btn-outline-danger btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ pedido.id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted small align-self-center" title="Pedidos recebidos não podem ser excluídos">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </span>
                                         {% endif %}
-                                    </td>
+                                    </div>
 
+                                    {# Modal de Exclusão (Dentro do IF da Contabilidade) #}
                                     <div class="modal fade" id="modalExcluir{{ pedido.id }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content bg-dark text-white">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content bg-dark text-white border-danger">
                                                 <form action="{% url 'excluir_pedido' pedido.id %}" method="POST">
                                                     {% csrf_token %}
                                                     <div class="modal-header border-danger">
-                                                        <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                        <h5 class="modal-title text-danger">Confirmar Exclusão</h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                                     </div>
-                                                    <div class="modal-body">
+                                                    <div class="modal-body text-start">
                                                         <p>Você está excluindo o pedido: <strong>{{ pedido.titulo }}</strong></p>
-                                                        <label>Justificativa da Exclusão (Obrigatório):</label>
-                                                        <textarea name="justificativa" class="form-control bg-secondary text-white" required placeholder="Ex: Pedido duplicado ou erro na competência..."></textarea>
+                                                        <label class="small fw-bold">Justificativa (Obrigatório):</label>
+                                                        <textarea name="justificativa" class="form-control bg-secondary text-white border-0" required placeholder="Ex: Erro na competência..."></textarea>
                                                     </div>
-                                                    <div class="modal-footer border-top-0">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                                                    <div class="modal-footer border-0">
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-danger btn-sm">Confirmar Exclusão</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -231,13 +228,13 @@
                                     </div>
 
                                 {% else %}
-                                    {# VISÃO DO CLIENTE: Enviar ou ver o que já enviou #}
+                                    {# VISÃO DO CLIENTE #}
                                     {% if pedido.arquivo_enviado %}
                                         <div class="btn-group">
                                             <button class="btn btn-sm btn-outline-success rounded-pill px-3 me-2" disabled>
                                                 <i class="bi bi-check2-all me-1"></i> Enviado
                                             </button>
-                                            <a href="{% url 'responder_pedido' pedido.id %}" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm" title="Substituir arquivo">
+                                            <a href="{% url 'responder_pedido' pedido.id %}" class="btn btn-sm btn-outline-primary rounded-pill" title="Substituir arquivo">
                                                 <i class="bi bi-arrow-repeat"></i>
                                             </a>
                                         </div>

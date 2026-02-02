@@ -1,5 +1,8 @@
 from django.contrib import admin
 from .models import Empresa, Setor, PedidoDocumento
+from .models import ConfiguracaoSistema
+
+admin.site.register(ConfiguracaoSistema)
 
 @admin.register(Setor)
 class SetorAdmin(admin.ModelAdmin):
