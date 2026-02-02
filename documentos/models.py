@@ -41,6 +41,7 @@ class PedidoDocumento(models.Model):
     concluido = models.BooleanField(default=False)
     excluido = models.BooleanField(default=False)
     justificativa_exclusao = models.TextField(null=True, blank=True)
+    usuario_exclusao = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='pedidos_excluidos_por')
 
     def __str__(self):
         

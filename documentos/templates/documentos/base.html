@@ -165,8 +165,9 @@
                         <li><a class="dropdown-item" href="{% url 'cadastrar_empresa' %}"><i class="bi bi-building me-2"></i>Cadastrar Empresa</a></li>
                         <li><a class="dropdown-item" href="{% url 'cadastrar_usuario' %}"><i class="bi bi-person-plus me-2"></i>Cadastrar Usuário</a></li>
                         <li><a class="dropdown-item" href="{% url 'cadastrar_setor' %}"><i class="bi bi-diagram-3 me-2"></i>Cadastrar Setor</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                         <li><a class="dropdown-item" href="{% url 'configurar_painel' %}"><i class="bi bi-gear me-2"></i>Configurar Logo/Sistema</a></li>
+                        <li><hr class="dropdown-divider bg-primary"></li>
+                        <li><a class="dropdown-item" href="{% url 'configurar_painel' %}"><i class="bi bi-gear me-2"></i>Configurar Logo/Sistema</a></li>
+                        <li><a class="dropdown-item" href="{% url 'central_exclusoes' %}"><i class="bi bi-file-earmark-x me-2 text-danger"> Relatório Excluídos</i></a></li>
                     </ul>
                 </li>
                 {% endif %}

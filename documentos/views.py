@@ -138,7 +138,7 @@ def lista_pedidos(request):
     empresas_todas = Empresa.objects.all().order_by('nome_fantasia')
    
     if user.tipo in ['CONTABILIDADE', 'ADMIN_CONTABILIDADE']:
-        pedidos = PedidoDocumento.objects.all()
+        pedidos = PedidoDocumento.objects.filter(excluido=False)
         if empresa_id:
             pedidos = pedidos.filter(empresa_destino_id=empresa_id)
         
@@ -149,7 +149,7 @@ def lista_pedidos(request):
     
     
     else:
-        pedidos = PedidoDocumento.objects.filter(empresa_destino=user.empresa)
+        pedidos = PedidoDocumento.objects.filter(empresa_destino=user.empresa, excluido=False)
         usuarios_filtro = UsuarioModel.objects.filter(
             tipo__in=['CONTABILIDADE', 'ADMIN_CONTABILIDADE']
     ).exclude(username='innosoft').order_by('username')
@@ -196,8 +196,12 @@ def excluir_pedido(request, pedido_id):
             messages.error(request, "Justificativa muito curta ou vazia!")
             return redirect('lista_pedidos')
 
-        pedido.delete() 
-        messages.success(request, "Pedido removido com sucesso.")
+        pedido.excluido = True
+        pedido.justificativa_exclusao = justificativa
+        pedido.usuario_exclusao = request.user
+        pedido.save()
+        
+        messages.success(request, "Pedido arquivado como excluído.")
         
     return redirect('lista_pedidos')
 
@@ -208,14 +212,20 @@ def dashboard_admin(request):
     total_empresas = Empresa.objects.count()
     total_setores = Setor.objects.count()
     total_usuarios = Usuario.objects.count()
-    total_pedidos = PedidoDocumento.objects.count()
+    total_pedidos = PedidoDocumento.objects.filter(excluido=False).count()
     concluidos = PedidoDocumento.objects.filter(concluido=True).count()
     # Cálculo simples de porcentagem
     percentual = (concluidos / total_pedidos * 100) if total_pedidos > 0 else 0
+    pedidos_excluidos = PedidoDocumento.objects.filter(excluido=True).order_by('-data_solicitacao')[:10]
+    
+    print(f"Total de excluídos encontrados: {pedidos_excluidos.count()}")
     
     relatorio_pendencias = Empresa.objects.annotate(
-        total_pedidos=Count('pedidos_empresa'),
-        pedidos_pendentes=Count('pedidos_empresa', filter=Q(pedidos_empresa__concluido=False))
+        ttotal_pedidos=Count('pedidos_empresa', filter=Q(pedidos_empresa__excluido=False)),
+        pedidos_pendentes=Count(
+            'pedidos_empresa', 
+            filter=Q(pedidos_empresa__concluido=False, pedidos_empresa__excluido=False)
+        )
     ).filter(pedidos_pendentes__gt=0).order_by('-pedidos_pendentes')
     
     return render(request, 'documentos/admin_dashboard.html', {
@@ -226,6 +236,7 @@ def dashboard_admin(request):
         'total_pedidos': total_pedidos,
         'percentual': percentual,
         'relatorio_pendencias': relatorio_pendencias,
+        'pedidos_excluidos': pedidos_excluidos,
     })
 
 @login_required
@@ -377,3 +388,42 @@ def configurar_painel(request):
         'form': form,
         'config': config
     })
+    
+@login_required
+@user_passes_test(eh_contador_ou_admin)
+def central_exclusoes(request):
+    # Captura os filtros do GET
+    empresa_id = request.GET.get('empresa')
+    usuario_id = request.GET.get('usuario')
+    data_inicio = request.GET.get('data_inicio')
+    data_fim = request.GET.get('data_fim')
+
+    # Query base: apenas os marcados como excluídos (soft delete)
+    pedidos = PedidoDocumento.objects.filter(excluido=True)
+
+    # Aplicação dos filtros
+    if empresa_id:
+        pedidos = pedidos.filter(empresa_destino_id=empresa_id)
+    if usuario_id:
+        pedidos = pedidos.filter(usuario_exclusao_id=usuario_id)
+    if data_inicio:
+        pedidos = pedidos.filter(data_solicitacao__date__gte=data_inicio)
+    if data_fim:
+        pedidos = pedidos.filter(data_solicitacao__date__lte=data_fim)
+
+    pedidos = pedidos.order_by('-data_solicitacao')
+
+    # Lógica para Exclusão Definitiva em Massa (Seleção)
+    if request.method == 'POST' and 'excluir_definitivo' in request.POST:
+        ids_para_excluir = request.POST.getlist('pedidos_selecionados')
+        PedidoDocumento.objects.filter(id__in=ids_para_excluir, excluido=True).delete()
+        messages.success(request, f"{len(ids_para_excluir)} pedidos foram removidos definitivamente.")
+        return redirect('central_exclusoes')
+
+    context = {
+        'pedidos': pedidos,
+        'empresas': Empresa.objects.all(),
+        'usuarios': Usuario.objects.filter(tipo__in=['CONTABILIDADE', 'ADMIN_CONTABILIDADE']),
+        'filtros': request.GET,
+    }
+    return render(request, 'documentos/central_exclusoes.html', context)

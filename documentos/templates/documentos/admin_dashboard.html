@@ -63,6 +63,7 @@
                     <a href="{% url 'cadastrar_setor' %}" class="btn btn-sm btn-outline-warning rounded-pill w-100">
                         <i class="bi bi-gear me-1"></i> Gerir Setores
                     </a>
+                    
                 </div>
             </div>
         </div>
@@ -162,7 +163,47 @@
                     <p class="small mt-3 mb-0 "><font color="yellow">Documentos entregues pelos clientes</p></font>
                 </div>
             </div>
-
+<div class="card shadow mt-4 border-danger">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0 text-danger"><i class="bi bi-trash me-2"></i>Pedidos Excluídos Recentemente<a href="{% url 'central_exclusoes' %}" class="btn btn-sm btn-outline-danger">Relatório Excluídos</a></h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Empresa</th>
+                        <th>Data Exclusão</th>
+                        <th>Excluído por</th>
+                        <th>Justificativa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos_excluidos %}
+                    <tr>
+                        <td>{{ pedido.titulo }}</td>
+                        <td>{{ pedido.empresa_destino.nome_fantasia }}</td>
+                        <td>{{ pedido.data_solicitacao|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                {{ pedido.usuario_exclusao.username|default:"Sistema" }}
+                            </span>
+                        </td>
+                        <td class="text-warning small">{{ pedido.justificativa_exclusao|default:"Nenhuma justificativa informada" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center p-4 text-muted">
+                            <i class="bi bi-info-circle me-1"></i> Nenhum pedido excluído no momento.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
             <style>
             .progress-circle {
             width: 120px; height: 120px;
@@ -179,5 +220,7 @@
         color: var(--accent-blue) !important;
     }
     .text-main { color: #e6edf3; }
+
+    
 </style>
 {% endblock %}
