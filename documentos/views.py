@@ -10,6 +10,10 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from email.mime.image import MIMEImage
+import os
+from django.conf import settings
+
 
 def manual_usuario(request):
     return render(request, 'documentos/manual.html')
@@ -41,7 +45,7 @@ def enviar_notificacao_documento(pedido, tipo_evento):
     config = ConfiguracaoSistema.objects.first()
     
     
-    logo_url = "https://vectorseek.com/wp-content/uploads/2023/08/Contabilidade-Logo-Vector.svg-.png"
+    logo_url = "https://contabfiles.innosoft.com.br/static/img/logo2.png"
     if config and config.logo_contabilidade:
         dominio = "https://contabfiles.innosoft.com.br"
         logo_url = f"{dominio}{config.logo_contabilidade.url}"
@@ -76,6 +80,23 @@ def enviar_notificacao_documento(pedido, tipo_evento):
     
     email = EmailMultiAlternatives(assunto, text_content, from_email, to_list, cc=cc_list)
     email.attach_alternative(html_content, "text/html")
+    
+    try:
+        # 1. Definimos o caminho do arquivo no VPS
+        # Se estiver em static/img/logo2.png, usamos o BASE_DIR
+        path_logo = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo2.png')
+        
+        # Se a logo for dinâmica (vinda do banco), descomente abaixo:
+        # if config and config.logo_contabilidade:
+        #     path_logo = config.logo_contabilidade.path
+
+        with open(path_logo, 'rb') as f:
+            img = MIMEImage(f.read())
+            img.add_header('Content-ID', '<logo_cid>') # Mesmo ID usado no context
+            img.add_header('Content-Disposition', 'inline', filename='logo2.png')
+            email.attach(img)
+    except Exception as e:
+        print(f"Não foi possível anexar a logo: {e}")
     
     try:
         email.send()

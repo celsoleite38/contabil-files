@@ -1,14 +1,21 @@
 {% load static %}
 <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; color: #333;">
     <div style="text-align: center; margin-bottom: 20px;">
-        <img src="{{ logo_url }}" alt="{{ nome_contabilidade }}" style="max-width: 150px;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: auto;">
+            <tr>
+                <td width="100" style="width: 100px;">
+                    <img src="cid:logo_cid" 
+                        alt="{{ nome_contabilidade }}" 
+                        width="100" 
+                        style="width: 100px; max-width: 100px; height: auto; display: block; border: 0;" 
+                        border="0">
+                </td>
+            </tr>
+        </table>
     </div>
     
-    <div style="text-align: center; color: #27ae60;">
-        <span style="font-size: 50px;">✅</span>
-        <h2 style="margin-top: 10px;">Documento Recebido!</h2>
-    </div>
-    
+        <h2 style="margin-top: 10px;">✅Documento Recebido!</h2>
+        
     <p>Olá,</p>
     <p>Confirmamos que o documento <strong>{{ pedido.titulo }}</strong> foi enviado com sucesso pela empresa <strong>{{ pedido.empresa_destino.nome_fantasia}}</strong>.</p>
     
