@@ -13,6 +13,8 @@ from django.utils.html import strip_tags
 from email.mime.image import MIMEImage
 import os
 from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 
 
 def manual_usuario(request):
@@ -82,17 +84,12 @@ def enviar_notificacao_documento(pedido, tipo_evento):
     email.attach_alternative(html_content, "text/html")
     
     try:
-        # 1. Definimos o caminho do arquivo no VPS
-        # Se estiver em static/img/logo2.png, usamos o BASE_DIR
+        
         path_logo = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo2.png')
         
-        # Se a logo for dinâmica (vinda do banco), descomente abaixo:
-        # if config and config.logo_contabilidade:
-        #     path_logo = config.logo_contabilidade.path
-
         with open(path_logo, 'rb') as f:
             img = MIMEImage(f.read())
-            img.add_header('Content-ID', '<logo_cid>') # Mesmo ID usado no context
+            img.add_header('Content-ID', '<logo_cid>')
             img.add_header('Content-Disposition', 'inline', filename='logo2.png')
             email.attach(img)
     except Exception as e:
@@ -226,20 +223,46 @@ def excluir_pedido(request, pedido_id):
         
     return redirect('lista_pedidos')
 
+
+
 @login_required
 @user_passes_test(eh_contador_ou_admin)
 def dashboard_admin(request):
     config = ConfiguracaoSistema.objects.first()
+    
+    # 1. Configuração de Datas
+    agora = timezone.now()
+    hoje = agora.date()
+    uma_semana_atras = hoje - timedelta(days=7)
+    inicio_mes = hoje.replace(day=1)
+
+    # 2. Função Auxiliar Interna
+    def calcular_progresso(queryset):
+        total = queryset.filter(excluido=False).count()
+        if total == 0:
+            return 0
+        concluidos = queryset.filter(concluido=True, excluido=False).count()
+        return (concluidos / total) * 100
+
+    # 3. Métricas Gerais
     total_empresas = Empresa.objects.count()
     total_setores = Setor.objects.count()
     total_usuarios = Usuario.objects.count()
-    total_pedidos = PedidoDocumento.objects.filter(excluido=False).count()
-    concluidos = PedidoDocumento.objects.filter(concluido=True).count()
-    # Cálculo simples de porcentagem
-    percentual = (concluidos / total_pedidos * 100) if total_pedidos > 0 else 0
-    pedidos_excluidos = PedidoDocumento.objects.filter(excluido=True).order_by('-data_solicitacao')[:10]
     
-    print(f"Total de excluídos encontrados: {pedidos_excluidos.count()}")
+    # Usando PedidoDocumento (ajuste para o nome correto do seu model se necessário)
+    qs_pedidos = PedidoDocumento.objects.filter(excluido=False)
+    total_pedidos = qs_pedidos.count()
+    concluidos = qs_pedidos.filter(concluido=True).count()
+    
+    percentual = (concluidos / total_pedidos * 100) if total_pedidos > 0 else 0
+
+    # 4. Cálculos dos Novos Gráficos
+    percentual_diario = calcular_progresso(PedidoDocumento.objects.filter(data_solicitacao__date=hoje))
+    percentual_semanal = calcular_progresso(PedidoDocumento.objects.filter(data_solicitacao__date__gte=uma_semana_atras))
+    percentual_mensal = calcular_progresso(PedidoDocumento.objects.filter(data_solicitacao__date__gte=inicio_mes))
+
+    # 5. Outros Dados
+    pedidos_excluidos = PedidoDocumento.objects.filter(excluido=True).order_by('-data_solicitacao')[:10]
     
     relatorio_pendencias = Empresa.objects.annotate(
         ttotal_pedidos=Count('pedidos_empresa', filter=Q(pedidos_empresa__excluido=False)),
@@ -256,10 +279,12 @@ def dashboard_admin(request):
         'total_usuarios': total_usuarios,
         'total_pedidos': total_pedidos,
         'percentual': percentual,
+        'percentual_diario': percentual_diario,
+        'percentual_semanal': percentual_semanal,
+        'percentual_mensal': percentual_mensal,
         'relatorio_pendencias': relatorio_pendencias,
         'pedidos_excluidos': pedidos_excluidos,
     })
-
 @login_required
 @user_passes_test(eh_contador_ou_admin)
 def gerir_empresas(request):

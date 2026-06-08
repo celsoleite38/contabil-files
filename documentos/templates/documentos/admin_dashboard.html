@@ -154,15 +154,58 @@
                 </div>
             </div>
         </div>
-<div class="card border-0 shadow-sm bg-card">
-                <div class="card-body text-center">
-                    <h6 class="text mb-3">Progresso Geral de Entregas</h6>
-                    <div class="progress-circle mx-auto" style="--value: {{ percentual|floatformat:0 }}">
-                        <span class="fw-bold fs-4">{{ percentual|floatformat:0 }}%</span>
-                    </div>
-                    <p class="small mt-3 mb-0 "><font color="yellow">Documentos entregues pelos clientes</p></font>
+<div class="row mb-4">
+    <div class="col-12 text-center"><br>
+        <h4 class="fw-bold text-white">Progresso de Entregas</h4>
+        
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm bg-card h-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <h6 class="text-white-50 mb-3 small">Hoje</h6>
+                <div class="progress-circle" style="--value: {{ percentual_diario|floatformat:0 }}; --color: #00d2ff;">
+                    <span class="fw-bold">{{ percentual_diario|floatformat:0 }}%</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm bg-card h-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <h6 class="text-white-50 mb-3 small">Semanal</h6>
+                <div class="progress-circle" style="--value: {{ percentual_semanal|floatformat:0 }}; --color: #27ae60;">
+                    <span class="fw-bold">{{ percentual_semanal|floatformat:0 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm bg-card h-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <h6 class="text-white-50 mb-3 small">Mensal</h6>
+                <div class="progress-circle" style="--value: {{ percentual_mensal|floatformat:0 }}; --color: #f39c12;">
+                    <span class="fw-bold">{{ percentual_mensal|floatformat:0 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm bg-card h-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center border border-primary border-opacity-25 rounded">
+                <h6 class="text-primary mb-3 small fw-bold">Geral</h6>
+                <div class="progress-circle" style="--value: {{ percentual|floatformat:0 }}; --color: #3498db;">
+                    <span class="fw-bold">{{ percentual|floatformat:0 }}%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="card shadow mt-4 border-danger">
     <div class="card-header bg-dark text-white">
         <h5 class="mb-0 text-danger"><i class="bi bi-trash me-2"></i>Pedidos Excluídos Recentemente<a href="{% url 'central_exclusoes' %}" class="btn btn-sm btn-outline-danger">Relatório Excluídos</a></h5>
